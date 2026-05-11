@@ -246,45 +246,64 @@ async function main() {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-3-pro-image-preview",
+
+  // プライマリ: 高品質モデル / フォールバック: 安定モデル
+  const PRIMARY_MODEL   = "gemini-3-pro-image-preview";
+  const FALLBACK_MODEL  = "gemini-3.1-flash-image-preview";
+
+  const makeModel = (name) => genAI.getGenerativeModel({
+    model: name,
     generationConfig: { responseModalities: ["Text", "Image"] },
   });
 
   let success = 0;
+  let usingFallback = false; // 一度フォールバックに切り替えたら以降もフォールバック
+
   for (let i = 0; i < jobs.length; i++) {
     const { prompt, outputPath } = jobs[i];
     const label = design.images[i]?.text?.main || `Slide ${i + 1}`;
 
-    // 503（高負荷）は最大3回リトライ
+    // 503リトライ → それでも駄目ならフォールバックモデルで1回試みる
     const MAX_RETRY = 3;
     let lastError = null;
     let saved = false;
 
-    for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
-      try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            const buffer = Buffer.from(part.inlineData.data, "base64");
-            fs.writeFileSync(outputPath, buffer);
-            saved = true;
+    const modelsToTry = usingFallback
+      ? [FALLBACK_MODEL]
+      : [PRIMARY_MODEL, FALLBACK_MODEL];
+
+    for (const modelName of modelsToTry) {
+      const model = makeModel(modelName);
+      for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
+        try {
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+              const buffer = Buffer.from(part.inlineData.data, "base64");
+              fs.writeFileSync(outputPath, buffer);
+              saved = true;
+              break;
+            }
+          }
+          if (saved) break;
+          console.log(`[${i + 1}/${jobs.length}] 試行${attempt}(${modelName}): 画像なし — ${label}`);
+        } catch (error) {
+          lastError = error;
+          const is503 = error.message?.includes("503") || error.message?.includes("high demand");
+          if (is503 && attempt < MAX_RETRY) {
+            const wait = attempt * 15000;
+            console.log(`[${i + 1}/${jobs.length}] 試行${attempt}(${modelName}): 高負荷503 — ${wait / 1000}秒待ってリトライ...`);
+            await new Promise(r => setTimeout(r, wait));
+          } else {
             break;
           }
         }
-        if (saved) break;
-        console.log(`[${i + 1}/${jobs.length}] 試行${attempt}: 画像なし — ${label}`);
-      } catch (error) {
-        lastError = error;
-        const is503 = error.message?.includes("503") || error.message?.includes("high demand");
-        if (is503 && attempt < MAX_RETRY) {
-          const wait = attempt * 15000; // 15秒 → 30秒
-          console.log(`[${i + 1}/${jobs.length}] 試行${attempt}: 高負荷503 — ${wait / 1000}秒待ってリトライします...`);
-          await new Promise(r => setTimeout(r, wait));
-        } else {
-          break;
-        }
+      }
+      if (saved) break;
+      if (modelName === PRIMARY_MODEL && !usingFallback) {
+        console.log(`[${i + 1}/${jobs.length}] プライマリ失敗 → フォールバックモデルに切替 (${FALLBACK_MODEL})`);
+        usingFallback = true;
       }
     }
 
