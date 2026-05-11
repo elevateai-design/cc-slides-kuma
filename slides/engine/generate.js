@@ -170,11 +170,13 @@ async function main() {
   let designPath = null;
   let outDir = null;
   let dryRun = false;
+  let onlyIndex = null; // --index 10 で10枚目だけ生成（1始まり）
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--design" || args[i] === "-d") { designPath = args[++i]; }
     else if (args[i] === "--out" || args[i] === "-o") { outDir = args[++i]; }
     else if (args[i] === "--dry-run") { dryRun = true; }
+    else if (args[i] === "--index") { onlyIndex = parseInt(args[++i], 10); }
     else if (args[i] === "--list-styles") {
       console.log("Available styles:");
       for (const [name, s] of Object.entries(STYLES)) {
@@ -200,10 +202,18 @@ async function main() {
   const slidesDir = path.join(outDir, "slides");
   fs.mkdirSync(slidesDir, { recursive: true });
 
-  const jobs = design.images.map((spec, i) => ({
+  let jobs = design.images.map((spec, i) => ({
     prompt: buildPrompt(spec, style, preset, design.style_description),
     outputPath: path.join(slidesDir, `slide-${i + 1}.png`),
   }));
+
+  if (onlyIndex !== null) {
+    jobs = jobs.filter((_, i) => i + 1 === onlyIndex);
+    if (jobs.length === 0) {
+      console.error(`Error: --index ${onlyIndex} が範囲外です（1〜${design.images.length}）`);
+      process.exit(1);
+    }
+  }
 
   console.log(`Images to generate: ${jobs.length}`);
   console.log(`Style: ${style?.name || "none"}`);
@@ -245,27 +255,46 @@ async function main() {
   for (let i = 0; i < jobs.length; i++) {
     const { prompt, outputPath } = jobs[i];
     const label = design.images[i]?.text?.main || `Slide ${i + 1}`;
-    try {
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      let saved = false;
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const buffer = Buffer.from(part.inlineData.data, "base64");
-          fs.writeFileSync(outputPath, buffer);
-          saved = true;
+
+    // 503（高負荷）は最大3回リトライ
+    const MAX_RETRY = 3;
+    let lastError = null;
+    let saved = false;
+
+    for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
+      try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            const buffer = Buffer.from(part.inlineData.data, "base64");
+            fs.writeFileSync(outputPath, buffer);
+            saved = true;
+            break;
+          }
+        }
+        if (saved) break;
+        console.log(`[${i + 1}/${jobs.length}] 試行${attempt}: 画像なし — ${label}`);
+      } catch (error) {
+        lastError = error;
+        const is503 = error.message?.includes("503") || error.message?.includes("high demand");
+        if (is503 && attempt < MAX_RETRY) {
+          const wait = attempt * 15000; // 15秒 → 30秒
+          console.log(`[${i + 1}/${jobs.length}] 試行${attempt}: 高負荷503 — ${wait / 1000}秒待ってリトライします...`);
+          await new Promise(r => setTimeout(r, wait));
+        } else {
           break;
         }
       }
-      if (saved) {
-        success++;
-        console.log(`[${i + 1}/${jobs.length}] OK — ${label}`);
-      } else {
-        console.log(`[${i + 1}/${jobs.length}] FAILED (no image) — ${label}`);
-      }
-    } catch (error) {
-      console.log(`[${i + 1}/${jobs.length}] ERROR — ${label}: ${error.message}`);
     }
+
+    if (saved) {
+      success++;
+      console.log(`[${i + 1}/${jobs.length}] OK — ${label}`);
+    } else {
+      console.log(`[${i + 1}/${jobs.length}] FAILED — ${label}: ${lastError?.message || "no image"}`);
+    }
+
     if (i < jobs.length - 1) {
       await new Promise(r => setTimeout(r, 3000));
     }
