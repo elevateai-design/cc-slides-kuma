@@ -1,0 +1,33 @@
+# 環境変数
+.env
+
+# 依存パッケージ
+node_modules/
+slides/engine/node_modules/
+
+# 生成ファイル（出力物）
+slides/output/
+input/output/
+
+# 生成中間ファイル（plan.js が上書きするファイル）
+slides/image-design.json
+slides/image-design-photos.json
+slides/image-design-debug.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# エディタ
+.vscode/
+.idea/
+*.swp
+
+# ログ
+*.log
+npm-debug.log*
+
+# テスト生成ファイル
+slides/image-design-test.json
+slides/output-test/
+slides/image-design-*-photos.json
