@@ -148,8 +148,22 @@ Claude Code 7dayブートキャンプ
 
 ---
 
-## スタイル
-# 選択肢: manus / stripe / apple / google / mckinsey / notion / figma / canva / netflix / nike / muji
+## 生成パラメータ
+
+### 訴求軸
+# 何を主軸に訴えるか。例: 収入アップ / 時間自由 / スキル習得 / 副業スタート / AI人材になる
+収入アップ
+
+### ターゲット属性
+# 誰に向けて訴えるか。例: 副業未経験の会社員 / フリーランス / 経営者 / 主婦
+副業未経験の会社員
+
+### 画像枚数
+# デフォルト26枚。構成合意後に確定枚数を反映する
+26
+
+### スタイル
+# 選択肢: manus / stripe / apple / google / mckinsey / notion / figma / canva / netflix / nike / muji / premium / corporate
 manus
 
 ## スライドの受け取り先（省略可・デフォルト: slides/output）

@@ -52,6 +52,8 @@ const STYLE_MAP = {
   netflix: { style_base: "netflix", style_description: "" },
   nike: { style_base: "nike", style_description: "" },
   muji: { style_base: "muji", style_description: "" },
+  premium: { style_base: "premium", style_description: "" },
+  corporate: { style_base: "corporate", style_description: "" },
 };
 
 // ─── システムプロンプト ───────────────────────────────────────
@@ -221,10 +223,27 @@ async function main() {
     ? fs.readFileSync(fewShotPath, "utf-8")
     : "（few-shot例なし）";
 
-  // スタイル取得
-  const styleMatch = brief.match(/^## スタイル\n(?:#[^\n]*\n)?([\w]+)/m);
+  // ─── 生成パラメータを取得 ─────────────────────────────────────
+  // 訴求軸
+  const appealMatch = brief.match(/^### 訴求軸\n(?:#[^\n]*\n)?([\s\S]+?)(?=\n###|\n##|$)/m);
+  const appealAxis = appealMatch ? appealMatch[1].trim() : "収入アップ";
+
+  // ターゲット属性
+  const targetMatch = brief.match(/^### ターゲット属性\n(?:#[^\n]*\n)?([\s\S]+?)(?=\n###|\n##|$)/m);
+  const targetAttr = targetMatch ? targetMatch[1].trim() : "副業未経験の会社員";
+
+  // 画像枚数
+  const countMatch = brief.match(/^### 画像枚数\n(?:#[^\n]*\n)?(\d+)/m);
+  const slideCount = countMatch ? parseInt(countMatch[1], 10) : 26;
+
+  // スタイル（新形式: ### スタイル、旧形式: ## スタイル の両方に対応）
+  const styleMatch = brief.match(/^#{2,3} スタイル\n(?:#[^\n]*\n)?([\w]+)/m);
   const styleName = styleMatch ? styleMatch[1].trim().toLowerCase() : "manus";
   const style = STYLE_MAP[styleName] || STYLE_MAP.manus;
+
+  console.log(`訴求軸: ${appealAxis}`);
+  console.log(`ターゲット: ${targetAttr}`);
+  console.log(`画像枚数: ${slideCount}枚`);
   console.log(`スタイル: ${styleName}`);
 
   const client = new Anthropic({ apiKey });
@@ -233,6 +252,16 @@ async function main() {
   // ─── Stage 1: スライド構成を設計 ─────────────────────────────
 
   console.log("Stage 1: スライド構成を設計中...");
+
+  // 生成パラメータ指示文（Stage1/Stage2共通で使用）
+  const paramInstruction = `
+## 生成パラメータ（最優先で反映すること）
+- 訴求軸: ${appealAxis}
+  → スライド全体のメッセージ・言葉選び・感情設計をこの軸に統一する
+- ターゲット属性: ${targetAttr}
+  → 悩み・痛み・欲求の描写をこの属性に合わせてカスタマイズする
+- 画像枚数: ${slideCount}枚
+  → ちょうど${slideCount}枚になるようにスライド構成を調整する（多すぎず少なすぎず）`;
 
   const stage1 = await client.messages.create({
     model: "claude-opus-4-5",
@@ -243,6 +272,7 @@ async function main() {
       content: `以下のサービス仕様書を読み、最適なスライド構成を設計してください。
 各スライドの「番号・タイトル（日本語）・役割・レイアウトタイプ」を箇条書きで列挙してください。
 JSONはまだ出力しないでください。
+${paramInstruction}
 
 ---
 ${brief}`,
@@ -269,6 +299,7 @@ ${brief}`,
         content: `以下のサービス仕様書を読み、最適なスライド構成を設計してください。
 各スライドの「番号・タイトル（日本語）・役割・レイアウトタイプ」を箇条書きで列挙してください。
 JSONはまだ出力しないでください。
+${paramInstruction}
 
 ---
 ${brief}`,

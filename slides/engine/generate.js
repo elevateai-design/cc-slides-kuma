@@ -77,6 +77,14 @@ const STYLES = {
     name: "muji",
     prompt: `MUJI aesthetic. STRICT COLOR PALETTE: background #F5F0EB (warm beige), main #3C3C3C, accent #8B7355 (natural brown). Extreme simplicity, natural warmth, quiet elegance, serif hints.`,
   },
+  premium: {
+    name: "premium",
+    prompt: `Japanese premium seminar aesthetic. STRICT COLOR PALETTE: background #0D1B3E (deep navy), main #FFFFFF, accent #C9A84C (warm gold). Ornate Art Deco corner filigree in gold, hexagonal lattice background pattern at 5% opacity, gold horizontal divider lines, gold circle number badges, white panel cards with gold top-accent bar, flat line-art icons in gold. Bold white title, gold accent elements, luxury high-end feel.`,
+  },
+  corporate: {
+    name: "corporate",
+    prompt: `Japanese corporate business-document aesthetic. STRICT COLOR PALETTE: background #FFFFFF, main #1B2A5E (dark navy), accent #2B5BA8 (medium blue), sub-bg #E8F0FC (pale blue). Structured multi-column grid, thin-border section cards, blue accent header bars, flat colorful icons, pyramid diagrams and flow charts, information-dense layout, professional and trustworthy.`,
+  },
 };
 
 // ─── プリセット定義 ─────────────────────────────────────────────
