@@ -1,194 +1,122 @@
-# cc-slides — AI スライド画像生成ツール
+# cc-slides — AI セールススライド自動生成システム
 
-対話だけでプロ品質のスライド画像を生成するツール。
-Gemini API を使い、10種類のスタイルプリセットからプレゼン資料・サムネイル・SNS画像を生成する。
+サービス仕様書（Markdown）を渡すだけで、プロ品質のセールススライド画像を自動生成するツール。
+Claude API でスライド構成・テキストを設計し、Gemini API で PNG 画像を生成する。
 
-## トリガー
+---
 
-ユーザーが以下のような発話をしたら、このファイルの手順に従って実行する:
-- 「スライドを作りたい」「プレゼン資料を作りたい」「セミナー資料を作りたい」
-- 「サムネイルを作りたい」「SNS画像を作りたい」「スライド画像を生成して」
-- スライド・プレゼン・画像の生成を意図する発話全般
+## セットアップ（初回のみ）
 
-## 共通ルール
+このリポジトリを開いたら、まず以下を確認・実行する。
 
-- ユーザーはプログラミング未経験者。コードの説明は不要
-- 修正は何度でも対応する
-- `purpose` フィールドの品質がデザインの品質を決める。ここに時間をかける
-
-## セットアップ
-
-初回のみ以下を実行:
+### 1. 依存パッケージのインストール
 
 ```bash
 cd slides/engine && npm install
 ```
 
-Gemini API キーの取得方法は `setup/gemini-api.md` を参照。
+### 2. APIキーの設定
 
-## プロジェクト構成
-
-```
-cc-slides/
-├── CLAUDE.md                       ← このファイル（スキル定義を含む）
-├── setup/
-│   └── gemini-api.md               ← Gemini APIセットアップ手順
-└── slides/
-    ├── engine/
-    │   ├── generate.js             ← 画像生成エンジン
-    │   └── package.json
-    ├── image-design.json           ← スライド設計ファイル（AIが生成）
-    └── output/                     ← 生成画像の出力先
-```
-
----
-
-## スライド画像生成スキル
-
-**Gemini API を使って、プロ品質のスライド画像を生成する。**
-
-### 全体フロー
-
-```
-Phase 1: ヒアリング（用途・内容・スタイル）
-Phase 2: image-design.json を設計
-Phase 3: 画像生成（Gemini API）
-Phase 4: 確認 → 修正ループ
-```
-
----
-
-### Phase 1: ヒアリング
-
-#### 必須項目
-1. **用途**: セミナースライド、提案資料、SNS投稿画像、YouTube サムネイル、動画用スライド等
-2. **内容**: 何を伝えたいか。テキスト原稿やMarkdownがあればそのまま共有してもらう
-3. **枚数**: だいたい何枚必要か
-4. **スタイルの好み**: 以下から選んでもらう or 「おまかせ」
-
-#### 選べるスタイル
-
-| スタイル | 特徴 | 合う用途 |
-|---------|------|---------|
-| `stripe` | 純白 + ダークネイビー + パープル差し色。洗練と信頼感 | ビジネス、SaaS、テック |
-| `apple` | ミニマル、大きな余白、モノトーン + 1色アクセント | プロダクト発表、ブランド |
-| `google` | マテリアルカラー4色、フレンドリー | 教育、チーム向け |
-| `mckinsey` | 白+ネイビー、データ重視、堅実 | 提案資料、コンサル |
-| `notion` | ソフト、ニュートラル、読みやすさ重視 | ドキュメント、ハウツー |
-| `figma` | パープル+ティール、モダン、クリエイティブ | デザイン系、クリエイティブ |
-| `canva` | パステル+ポップ、親しみやすい | SNS、カジュアル |
-| `netflix` | ダークテーマ、赤アクセント、ドラマチック | エンタメ、インパクト重視 |
-| `nike` | 白黒+蛍光アクセント、太字、エネルギッシュ | スポーツ、イベント |
-| `muji` | ベージュ+茶、ナチュラル、静寂 | ライフスタイル、ナチュラル系 |
-
-#### 任意項目
-5. **ブランドカラー**: あれば
-6. **参考画像**: 好みのスライドデザインがあれば
-7. **キャラクター画像**: スライドに登場させたい人物写真があれば
-
----
-
-### Phase 2: image-design.json を設計
-
-ヒアリング結果を元に `slides/image-design.json` を生成する。
-
-#### JSONの構造
-
-```json
-{
-  "type": "series",
-  "style_base": "stripe",
-  "style_description": "Stripeプロダクトページ風。純白の背景にダークネイビーのタイポグラフィ。",
-  "preset": "video-slide",
-  "images": [
-    {
-      "purpose": "このスライドが果たす役割を書く",
-      "text": {
-        "main": "メインタイトル",
-        "sub": "サブタイトル",
-        "other": ["箇条書き1", "箇条書き2", "箇条書き3"]
-      }
-    }
-  ]
-}
-```
-
-#### 各フィールドの説明
-
-| フィールド | 説明 |
-|-----------|------|
-| `type` | `"series"`（複数枚）or `"single"`（1枚） |
-| `style_base` | スタイル名（Phase 1で選択したもの） |
-| `style_description` | スタイルの自由記述（より具体的な指示） |
-| `preset` | `"video-slide"`（16:9）、`"thumbnail"`（サムネ）、`"sns-square"`（1:1）、`"sns-story"`（9:16） |
-| `images[].purpose` | **最重要**。このスライドの目的を具体的に書く |
-| `images[].text.main` | メインタイトル |
-| `images[].text.sub` | サブタイトル |
-| `images[].text.other` | その他のテキスト要素（箇条書き等） |
-
-#### purpose の書き方（品質を決定的に左右する）
-
-悪い例: `"表紙"`
-良い例: `"コースの第一印象。「AIで業務自動化」という期待感で視聴者を掴む表紙。大きなタイポグラフィが主役。"`
-
-悪い例: `"ステップの説明"`
-良い例: `"3ステップの全体像を俯瞰するロードマップ。タイムライン型で流れを直感的に理解させる。"`
-
-**purposeは2〜3文で、「何を」「どう見せるか」「どんなレイアウトか」を具体的に書く。**
-
-#### ユーザーに確認
-- image-design.json の内容をユーザーに見せる
-- 「OK」を得てから生成に進む
-
----
-
-### Phase 3: 画像生成
-
-#### 環境確認
-1. `GOOGLE_AI_API_KEY` が設定されているか確認（`.env` ファイル or 環境変数）
-2. 設定されていなければユーザーに取得手順を案内:
-
-```
-Gemini APIキーが必要です。以下の手順で取得してください:
-
-1. https://aistudio.google.com/apikey にアクセス
-2. 「Create API Key」をクリック
-3. キーをコピー
-4. プロジェクトフォルダに .env ファイルを作成:
-   echo 'GOOGLE_AI_API_KEY=取得したキー' > .env
-```
-
-#### 生成コマンド
+`.env` ファイルがなければ作成する：
 
 ```bash
-node slides/engine/generate.js --design slides/image-design.json --out slides/output
+cp .env.example .env
 ```
 
-#### 生成結果
-- `slides/output/slides/slide-1.png`, `slide-2.png`, ... が出力される
-- 生成完了後、自動で出力フォルダを開く: `open slides/output/slides`
+`.env` を開いて2つのキーを入力：
+
+```
+GOOGLE_AI_API_KEY=（Gemini APIキー）
+ANTHROPIC_API_KEY=（Anthropic APIキー）
+```
+
+- Gemini APIキー取得: https://aistudio.google.com/apikey
+- Anthropic APIキー取得: https://console.anthropic.com/
+- 詳細手順: `setup/gemini-api.md`
 
 ---
 
-### Phase 4: 確認 → 修正ループ
+## 使い方
 
-1. 生成された画像をユーザーに確認してもらう
-2. フィードバックに基づいて修正:
+### 基本コマンド（仕様書 → スライドPNG 全自動）
 
-| 修正内容 | 対応 |
+```bash
+node slides/engine/run.js --brief input/brief-template.md
+```
+
+`slides/output/` に `slide-1.png` 〜 `slide-N.png` が出力される。
+
+### オプション
+
+| オプション | 説明 |
+|-----------|------|
+| `--brief <path>` | 仕様書ファイルのパス（必須） |
+| `--out <dir>` | 出力先ディレクトリ（デフォルト: `slides/output`） |
+| `--plan-only` | 設計JSONだけ生成して終了（画像生成しない） |
+| `--generate-only` | 既存の `slides/image-design.json` から画像だけ生成 |
+
+### 仕様書の書き方
+
+`input/brief-template.md` をコピーして編集する：
+
+```bash
+cp input/brief-template.md input/my-brief.md
+```
+
+記入項目：商品名・キャッチコピー・ターゲット・価格・講師情報・商品構成・特典・スタイル
+
+**スタイル選択肢：** `manus` / `stripe` / `apple` / `google` / `mckinsey` / `notion` / `figma` / `canva` / `netflix` / `nike` / `muji`
+
+---
+
+## パイプライン
+
+```
+input/brief.md（仕様書）
+    ↓ plan.js（Claude API）
+slides/image-design.json（スライド設計JSON）
+    ↓ generate.js（Gemini API）
+slides/output/slide-1.png 〜 slide-N.png
+```
+
+### 各ファイルの役割
+
+| ファイル | 役割 |
 |---------|------|
-| テキストの変更 | `image-design.json` のテキストを修正 → 該当スライドだけ再生成 |
-| スタイルの変更 | `style_base` や `style_description` を変更 → 全体再生成 |
-| レイアウトの変更 | `purpose` を書き直す → 該当スライドだけ再生成 |
-| スライドの追加/削除 | `images` 配列を修正 → 再生成 |
+| `slides/engine/run.js` | パイプライン全体の実行エントリーポイント |
+| `slides/engine/plan.js` | 仕様書 → image-design.json（Claude API使用） |
+| `slides/engine/generate.js` | image-design.json → PNG画像（Gemini API使用） |
+| `slides/engine/composite.js` | 顔写真を生成済みスライドに合成（sharp使用） |
+| `examples/cc-bootcamp.json` | few-shot例（Claude がスライド品質の参考にする） |
 
-3. 「OK」が出るまで繰り返す
+---
+
+## 顔写真の合成（オプション）
+
+講師写真を `input/photos/` に置き、生成後に合成する：
+
+```bash
+node slides/engine/composite.js \
+  --slide slides/output/slide-10.png \
+  --photo input/photos/mikami.jpg \
+  --out slides/output/slide-10-final.png
+```
+
+---
+
+## トラブルシューティング
+
+| エラー | 対処 |
+|-------|------|
+| `ANTHROPIC_API_KEY が設定されていません` | `.env` にキーを追加 |
+| `GOOGLE_AI_API_KEY が設定されていません` | `.env` にキーを追加 |
+| `npm install を実行してください` | `cd slides/engine && npm install` |
+| JSON パースエラー | `slides/image-design-debug.txt` を確認 |
 
 ---
 
 ## 注意事項
 
-- Gemini APIの画像生成はテキスト描画の正確性が100%ではない。日本語テキストの一部が崩れることがある
-- 1枚の生成に数秒〜十数秒かかる。10枚だと1〜2分程度
-- APIのレート制限に注意。連続生成時は3秒間隔を空ける
-- `purpose` フィールドの品質がデザインの品質を決める。ここに時間をかける
+- 全枚数生成は5〜10分程度かかる
+- Gemini API の日本語描画精度は100%ではない（稀に文字が崩れる）
+- APIの利用料金が発生する（Gemini + Anthropic）
