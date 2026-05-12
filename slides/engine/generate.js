@@ -190,13 +190,32 @@ async function main() {
   let designPath = null;
   let outDir = null;
   let dryRun = false;
-  let onlyIndex = null; // --index 10 で10枚目だけ生成（1始まり）
+  let onlyIndexes = null; // --index 5,8,10-12 のように複数指定可能（1始まり）
+
+  // "5,8,10-12,20" → [5, 8, 10, 11, 12, 20]
+  function parseIndexSpec(spec) {
+    const result = new Set();
+    for (const part of spec.split(",")) {
+      const trimmed = part.trim();
+      if (!trimmed) continue;
+      const rangeMatch = trimmed.match(/^(\d+)-(\d+)$/);
+      if (rangeMatch) {
+        const start = parseInt(rangeMatch[1], 10);
+        const end = parseInt(rangeMatch[2], 10);
+        for (let n = Math.min(start, end); n <= Math.max(start, end); n++) result.add(n);
+      } else {
+        const n = parseInt(trimmed, 10);
+        if (!isNaN(n)) result.add(n);
+      }
+    }
+    return [...result].sort((a, b) => a - b);
+  }
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--design" || args[i] === "-d") { designPath = args[++i]; }
     else if (args[i] === "--out" || args[i] === "-o") { outDir = args[++i]; }
     else if (args[i] === "--dry-run") { dryRun = true; }
-    else if (args[i] === "--index") { onlyIndex = parseInt(args[++i], 10); }
+    else if (args[i] === "--index") { onlyIndexes = parseIndexSpec(args[++i]); }
     else if (args[i] === "--list-styles") {
       console.log("Available styles:");
       for (const [name, s] of Object.entries(STYLES)) {
@@ -205,7 +224,11 @@ async function main() {
       return;
     }
     else if (args[i] === "--help" || args[i] === "-h") {
-      console.log(`Usage: node slides/engine/generate.js --design <json> --out <dir> [--dry-run]`);
+      console.log(`Usage: node slides/engine/generate.js --design <json> --out <dir> [--dry-run] [--index <spec>]
+  --index <spec>  生成するスライド番号を指定。単体・カンマ・範囲が使える。
+                  例: --index 5         （5番だけ）
+                      --index 5,8,12    （5・8・12番）
+                      --index 5,8,10-12 （5・8・10〜12番）`);
       return;
     }
   }
@@ -231,11 +254,16 @@ async function main() {
     outputPath: path.join(slidesDir, `slide-${i + 1}.png`),
   }));
 
-  if (onlyIndex !== null) {
-    jobs = jobs.filter((_, i) => i + 1 === onlyIndex);
+  if (onlyIndexes !== null && onlyIndexes.length > 0) {
+    const indexSet = new Set(onlyIndexes);
+    jobs = jobs.filter((_, i) => indexSet.has(i + 1));
     if (jobs.length === 0) {
-      console.error(`Error: --index ${onlyIndex} が範囲外です（1〜${design.images.length}）`);
+      console.error(`Error: --index ${onlyIndexes.join(",")} がすべて範囲外です（1〜${design.images.length}）`);
       process.exit(1);
+    }
+    const outOfRange = onlyIndexes.filter(n => n < 1 || n > design.images.length);
+    if (outOfRange.length > 0) {
+      console.warn(`警告: 範囲外の番号をスキップしました: ${outOfRange.join(",")}（有効範囲: 1〜${design.images.length}）`);
     }
   }
 

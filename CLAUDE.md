@@ -15,6 +15,9 @@
 
 以下を順番にチェックし、問題があればその場で解決してから次に進む。
 
+> 以下のコマンドはWindows（Git Bash / PowerShell）・Mac/Linuxどちらでも同じ書き方で動作します。
+> シェル差分が出る場合は併記しています。
+
 ### 1-A. node_modules の確認
 
 ```bash
@@ -29,13 +32,23 @@ cd slides/engine && npm install
 ### 1-B. .env の確認
 
 `.env` ファイルが存在するか確認：
+
 ```bash
+# Mac / Linux / Git Bash
 ls -la | grep .env
+
+# Windows PowerShell
+Get-ChildItem -Force | Select-String "\.env"
 ```
 
 なければ作成を案内：
+
 ```bash
+# Mac / Linux / Git Bash
 cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
 ```
 
 `.env` を開いて以下の2つのキーが入力済みか確認する：
@@ -214,20 +227,31 @@ node slides/engine/generate.js --design slides/image-design.json --out slides/ou
 | 修正内容 | 対応 |
 |---------|------|
 | テキストを変えたい | `slides/image-design.json` を編集 → Step 4 を再実行 |
-| 特定の1枚だけ再生成 | `--index N` オプションで該当スライドのみ再生成 |
+| 特定のスライドだけ再生成 | `--index` オプションで指定（単体・カンマ・範囲が使える） |
 | スタイルを変えたい | brief の「### スタイル」を変更 → Step 3 から再実行 |
 | 訴求軸・ターゲットを変えたい | brief の「## 生成パラメータ」を変更 → Step 3 から再実行 |
 
-特定の1枚だけ再生成する例（3枚目）：
+`--index` の指定例：
 ```bash
+# 3枚目だけ
 node slides/engine/generate.js --design slides/image-design.json --out slides/output --index 3
+
+# 5枚目・8枚目・12枚目
+node slides/engine/generate.js --design slides/image-design.json --out slides/output --index 5,8,12
+
+# 5枚目・8枚目・10〜12枚目
+node slides/engine/generate.js --design slides/image-design.json --out slides/output --index 5,8,10-12
 ```
+
+再生成が終わったら、講師スライド（10・11番）に顔写真を合成するか、動画素材として使う場合の演出ポイントを Step 6 で案内します。不要なら「以上で完了」で締めくくる。
 
 ---
 
-## Step 6：顔写真の合成（オプション）
+## Step 6：仕上げ（オプション）
 
-講師の顔写真を合成する場合：
+### Step 6-A：顔写真の合成
+
+講師の顔写真をスライド上に合成する場合：
 
 ```bash
 node slides/engine/composite.js \
@@ -236,7 +260,18 @@ node slides/engine/composite.js \
   --out slides/output/slides/slide-10-final.png
 ```
 
-顔写真は `input/photos/` に置いておく。
+顔写真は `input/photos/` に置いておく。該当スライド（典型: 10番・11番）ごとに1回ずつ実行する。
+
+### Step 6-B：デモ動画スライドの演出ガイド
+
+スライド8（デモ①：スライド自動生成）・スライド9（デモ②：案件探索自動化）は、あくまで「これからこのデモを見せます」という**導入の静止画**。
+動画コンテンツやセミナーで使う際は、このページに到達したら**別画面で実際にツールを動かしている様子に画面を切り替える**演出を推奨。スライド単体で完結させようとせず、ライブデモへの橋渡しとして扱うとインパクトが出る。
+
+ユーザーへの案内例：
+```
+スライド8・9はデモの導入ページです。動画で使う場合は、ここで画面を切り替えて
+ツールが実際に動いている様子を見せてください（スライドはあくまで導入の役割）。
+```
 
 ---
 
