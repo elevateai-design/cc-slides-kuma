@@ -272,8 +272,8 @@ async function main() {
   const genAI = new GoogleGenerativeAI(apiKey);
 
   // プライマリ: 高品質モデル / フォールバック: 安定モデル
-  const PRIMARY_MODEL   = "gemini-2.5-flash-image";
-  const FALLBACK_MODEL  = "gemini-2.5-flash-image"; // 現在唯一の動作確認済みモデル
+  const PRIMARY_MODEL   = "gemini-3-pro-image-preview";
+  const FALLBACK_MODEL  = "gemini-3.1-flash-image-preview";
 
   const makeModel = (name) => genAI.getGenerativeModel({
     model: name,
@@ -300,7 +300,7 @@ async function main() {
       const model = makeModel(modelName);
       for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
         try {
-          const TIMEOUT_MS = 60000; // 60秒でタイムアウト
+          const TIMEOUT_MS = 180000; // 180秒でタイムアウト（高品質モデルは生成に時間がかかる）
           const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error("Request timeout (60s)")), TIMEOUT_MS)
           );
