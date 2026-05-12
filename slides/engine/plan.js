@@ -194,6 +194,10 @@ async function main() {
     console.error("Error: --brief が必要です");
     process.exit(1);
   }
+
+  // 相対パスはprojectRoot基準で解決（worktree内からの実行でもファイルが正しい場所に出力される）
+  if (!path.isAbsolute(briefPath)) briefPath = path.resolve(projectRoot, briefPath);
+  if (!path.isAbsolute(outPath)) outPath = path.resolve(projectRoot, outPath);
   if (!fs.existsSync(briefPath)) {
     console.error(`Error: ファイルが見つかりません: ${briefPath}`);
     process.exit(1);
@@ -224,20 +228,23 @@ async function main() {
     : "（few-shot例なし）";
 
   // ─── 生成パラメータを取得 ─────────────────────────────────────
+  // CRLF正規化（Windows環境対応）
+  const briefNorm = brief.replace(/\r\n/g, "\n");
+
   // 訴求軸
-  const appealMatch = brief.match(/^### 訴求軸\n(?:#[^\n]*\n)?([\s\S]+?)(?=\n###|\n##|$)/m);
+  const appealMatch = briefNorm.match(/^### 訴求軸\n(?:#[^\n]*\n)?([\s\S]+?)(?=\n###|\n##|$)/m);
   const appealAxis = appealMatch ? appealMatch[1].trim() : "収入アップ";
 
   // ターゲット属性
-  const targetMatch = brief.match(/^### ターゲット属性\n(?:#[^\n]*\n)?([\s\S]+?)(?=\n###|\n##|$)/m);
+  const targetMatch = briefNorm.match(/^### ターゲット属性\n(?:#[^\n]*\n)?([\s\S]+?)(?=\n###|\n##|$)/m);
   const targetAttr = targetMatch ? targetMatch[1].trim() : "副業未経験の会社員";
 
   // 画像枚数
-  const countMatch = brief.match(/^### 画像枚数\n(?:#[^\n]*\n)?(\d+)/m);
+  const countMatch = briefNorm.match(/^### 画像枚数\n(?:#[^\n]*\n)?(\d+)/m);
   const slideCount = countMatch ? parseInt(countMatch[1], 10) : 26;
 
   // スタイル（新形式: ### スタイル、旧形式: ## スタイル の両方に対応）
-  const styleMatch = brief.match(/^#{2,3} スタイル\n(?:#[^\n]*\n)?([\w]+)/m);
+  const styleMatch = briefNorm.match(/^#{2,3} スタイル\n(?:#[^\n]*\n)?([\w]+)/m);
   const styleName = styleMatch ? styleMatch[1].trim().toLowerCase() : "manus";
   const style = STYLE_MAP[styleName] || STYLE_MAP.manus;
 
@@ -347,7 +354,7 @@ ${brief}`,
   console.log(`スライド枚数: ${design.images.length}枚`);
 
   // 講師名と写真のマッピングを抽出して保存
-  const photos = extractPhotos(brief);
+  const photos = extractPhotos(briefNorm);
   if (photos.length > 0) {
     const photosPath = outPath.replace(".json", "-photos.json");
     fs.writeFileSync(photosPath, JSON.stringify(photos, null, 2));

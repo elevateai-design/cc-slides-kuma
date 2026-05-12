@@ -203,6 +203,10 @@ async function main() {
     process.exit(1);
   }
 
+  // 相対パスはprojectRoot基準で解決（worktree内からの実行でもファイルが正しい場所に出力される）
+  if (!path.isAbsolute(designPath)) designPath = path.resolve(projectRoot, designPath);
+  if (!path.isAbsolute(outDir)) outDir = path.resolve(projectRoot, outDir);
+
   const design = JSON.parse(fs.readFileSync(designPath, "utf-8"));
   const style = STYLES[design.style_base] || null;
   const preset = PRESETS[design.preset] || PRESETS["video-slide"];
@@ -256,8 +260,8 @@ async function main() {
   const genAI = new GoogleGenerativeAI(apiKey);
 
   // プライマリ: 高品質モデル / フォールバック: 安定モデル
-  const PRIMARY_MODEL   = "gemini-3-pro-image-preview";
-  const FALLBACK_MODEL  = "gemini-3.1-flash-image-preview";
+  const PRIMARY_MODEL   = "gemini-2.5-flash-preview-05-20";
+  const FALLBACK_MODEL  = "gemini-2.0-flash-preview-image-generation";
 
   const makeModel = (name) => genAI.getGenerativeModel({
     model: name,
@@ -284,7 +288,11 @@ async function main() {
       const model = makeModel(modelName);
       for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
         try {
-          const result = await model.generateContent(prompt);
+          const TIMEOUT_MS = 60000; // 60秒でタイムアウト
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Request timeout (60s)")), TIMEOUT_MS)
+          );
+          const result = await Promise.race([model.generateContent(prompt), timeoutPromise]);
           const response = await result.response;
           for (const part of response.candidates[0].content.parts) {
             if (part.inlineData) {
