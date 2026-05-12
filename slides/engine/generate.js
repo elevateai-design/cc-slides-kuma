@@ -118,8 +118,6 @@ A good image causes an INTENDED CHANGE in the viewer's mind with MINIMUM COGNITI
 - Do NOT invent or add ANY text not listed in "TEXT TO RENDER" — no captions, no decorative words, no AI-generated additions.
 - ALL Japanese text must be perfectly legible. Render each Japanese character with extreme precision.
 - For long Japanese titles: render character-by-character, do NOT skip, merge, or substitute any character.
-- TEXT DENSITY LIMIT: Maximum 6 text items total on screen (excluding main title and subtitle). If fewer items = larger font = better legibility. ALWAYS prefer fewer, larger text elements over many small ones.
-- MINIMUM FONT SIZE: Never render Japanese text smaller than 24px. If items don't fit at 24px+, reduce the number of items shown, not the font size.
 
 === ILLUSTRATION STYLE ===
 - FLAT DESIGN + LINE ART ONLY. NO 3D, isometric, glossy, or realistic rendering.
@@ -158,9 +156,7 @@ function buildPrompt(imageSpec, style, preset, styleDescription) {
 
   let textSection = `Main title: ${main}`;
   if (sub) textSection += `\nSubtitle: ${sub}`;
-  // other は最大6件に絞る（それ以上は小フォントになり日本語が文字化けするため）
-  const otherTrimmed = other.slice(0, 6);
-  if (otherTrimmed.length > 0) textSection += `\nOther elements (arrange HORIZONTALLY): ${otherTrimmed.map((t, i) => `${i + 1}. ${t}`).join("  |  ")}`;
+  if (other.length > 0) textSection += `\nOther elements (arrange HORIZONTALLY): ${other.map((t, i) => `${i + 1}. ${t}`).join("  |  ")}`;
 
   let styleSection = style ? `Base concept (${style.name}): ${style.prompt}` : "";
   if (styleDescription) styleSection += `\nUnified style: ${styleDescription}`;
@@ -276,8 +272,8 @@ async function main() {
   const genAI = new GoogleGenerativeAI(apiKey);
 
   // プライマリ: 高品質モデル / フォールバック: 安定モデル
-  const PRIMARY_MODEL   = "gemini-2.5-flash-preview-05-20";
-  const FALLBACK_MODEL  = "gemini-2.0-flash-preview-image-generation";
+  const PRIMARY_MODEL   = "gemini-2.0-flash-preview-image-generation";
+  const FALLBACK_MODEL  = "gemini-2.5-flash-preview-05-20";
 
   const makeModel = (name) => genAI.getGenerativeModel({
     model: name,
