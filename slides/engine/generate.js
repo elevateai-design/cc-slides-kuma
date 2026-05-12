@@ -138,12 +138,20 @@ A good image causes an INTENDED CHANGE in the viewer's mind with MINIMUM COGNITI
 - NO rounded rectangle cards, pill badges, button shapes, or card grids with shadows.
 - Think "Apple keynote slide" — minimal, grid-aligned, breathable.`;
 
+// スタイル指示アノテーションを除去（例:「レベル名（白太字）」→「レベル名」）
+// plan.jsがotherにスタイルヒントを混入した場合のフェイルセーフ
+function stripStyleAnnotations(text) {
+  return text
+    .replace(/[（(][^）)]*(?:太字|細字|シルバー|ゴールド|右寄せ|左寄せ|中央|センター|イタリック|bold|italic|color|font|weight)[^）)]*[）)]/gi, "")
+    .trim();
+}
+
 function buildPrompt(imageSpec, style, preset, styleDescription) {
   const size = SIZE_MAP[preset?.size || "16:9"] || "16:9 (1920x1080px)";
   const purpose = imageSpec.purpose || "";
-  const main = imageSpec.text?.main || "";
-  const sub = imageSpec.text?.sub || "";
-  const other = imageSpec.text?.other || [];
+  const main = stripStyleAnnotations(imageSpec.text?.main || "");
+  const sub = stripStyleAnnotations(imageSpec.text?.sub || "");
+  const other = (imageSpec.text?.other || []).map(stripStyleAnnotations);
 
   let textSection = `Main title: ${main}`;
   if (sub) textSection += `\nSubtitle: ${sub}`;
