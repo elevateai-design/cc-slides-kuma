@@ -272,8 +272,8 @@ async function main() {
   const genAI = new GoogleGenerativeAI(apiKey);
 
   // プライマリ: 高品質モデル / フォールバック: 安定モデル
-  const PRIMARY_MODEL   = "gemini-3.1-flash-image-preview";
-  const FALLBACK_MODEL  = "gemini-2.5-flash-image";
+  const PRIMARY_MODEL   = "gemini-2.5-flash-image";
+  const FALLBACK_MODEL  = "gemini-2.5-flash-image"; // 現在唯一の動作確認済みモデル
 
   const makeModel = (name) => genAI.getGenerativeModel({
     model: name,
