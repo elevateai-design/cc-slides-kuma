@@ -12,6 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "../..");
@@ -339,6 +340,16 @@ async function main() {
     }
 
     if (saved) {
+      // 生成後に 1920×1080 へ強制リサイズ（Gemini が異なるサイズで出力する場合の統一処理）
+      try {
+        const resized = await sharp(outputPath)
+          .resize(1920, 1080, { fit: "cover", position: "center" })
+          .png()
+          .toBuffer();
+        fs.writeFileSync(outputPath, resized);
+      } catch (resizeErr) {
+        console.warn(`[${i + 1}/${jobs.length}] リサイズ失敗（スキップ）: ${resizeErr.message}`);
+      }
       success++;
       console.log(`[${i + 1}/${jobs.length}] OK — ${label}`);
     } else {
