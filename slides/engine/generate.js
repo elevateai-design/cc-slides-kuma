@@ -113,12 +113,15 @@ A good image causes an INTENDED CHANGE in the viewer's mind with MINIMUM COGNITI
 === ABSOLUTE RULES ===
 - TEXT ACCURACY IS #1 PRIORITY. Copy every character EXACTLY from "TEXT TO RENDER".
 - NEVER use emoji anywhere on the image.
-- Render ONLY the listed text. Do NOT add extra labels or numbers.
-- ALL Japanese text must be perfectly legible.
+- Render ONLY the listed text. Do NOT add extra labels, taglines, slogans, or invented text.
+- Do NOT invent or add ANY text not listed in "TEXT TO RENDER" — no captions, no decorative words, no AI-generated additions.
+- ALL Japanese text must be perfectly legible. Render each Japanese character with extreme precision.
+- For long Japanese titles: render character-by-character, do NOT skip, merge, or substitute any character.
 
 === ILLUSTRATION STYLE ===
 - FLAT DESIGN + LINE ART ONLY. NO 3D, isometric, glossy, or realistic rendering.
 - Think: Notion line icons, Apple SF Symbols.
+- For DEMO slides: show a clean flat illustration of a laptop or monitor screen with a simple UI diagram inside. Do NOT render actual video players, screenshots, or recursive slide content.
 
 === TYPOGRAPHY ===
 - CLEAN TYPOGRAPHY ONLY. No outlines, shadows, strokes, or 3D effects.
