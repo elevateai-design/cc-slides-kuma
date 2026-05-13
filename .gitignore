@@ -1,6 +1,10 @@
 # 環境変数
 .env
 
+# OAuth認証情報（絶対にコミットしない）
+slides/engine/credentials.json
+slides/engine/token.json
+
 # 依存パッケージ
 node_modules/
 slides/engine/node_modules/
@@ -31,3 +35,4 @@ npm-debug.log*
 slides/image-design-test.json
 slides/output-test/
 slides/image-design-*-photos.json
+spec.md

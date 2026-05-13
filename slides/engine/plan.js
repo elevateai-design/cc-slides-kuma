@@ -52,8 +52,14 @@ const STYLE_MAP = {
   netflix: { style_base: "netflix", style_description: "" },
   nike: { style_base: "nike", style_description: "" },
   muji: { style_base: "muji", style_description: "" },
-  premium: { style_base: "premium", style_description: "" },
-  corporate: { style_base: "corporate", style_description: "" },
+  premium: {
+    style_base: "premium",
+    style_description: "Premium luxury seminar design system. BACKGROUND: very deep dark navy (#0D1B3E) with subtle low-opacity hexagon honeycomb grid pattern overlay (5-8% opacity). CORE PALETTE: deep navy #0D1B3E, rich gold #C9A842, white #FFFFFF, light silver #C0C0C0. CORNER DECORATIONS: ornate gold filigree arabesque corner embellishments on all four corners of every slide — this is mandatory. GEOMETRIC DECOR: gold outline geometric polyhedra (diamond, icosahedron, octahedron wireframe shapes) as right-side or corner decorative elements. SECTION LABELS: gold-bordered dark rectangular badge in upper-left area (e.g. '1. DEMO 1') with gold border and small label text. TYPOGRAPHY: H1 extra-large extra-bold white; H2/sub text gold (#C9A842); body white or light silver (#C0C0C0); key statistics in oversized bold gold. CARDS: dark navy panels (#0F2040) with full gold border or gold top-bar accent; subtle inner gradient navy-to-slightly-lighter; rounded corners 6px; NO drop shadows. ICONS: gold line-art outline icons only, centered above card text. NUMBER CIRCLES: filled gold circles with dark number text for ordered lists. DIVIDERS: thin gold horizontal lines below title. GLOW EFFECTS: subtle gold radial sparkle on key numbers or CTA elements. TABLES: dark navy rows with gold-bordered highlight row for emphasis. LAYOUT: left-aligned headlines, 25%+ whitespace, strict grid. NEVER use emoji. Flat line-art icons only.",
+  },
+  corporate: {
+    style_base: "corporate",
+    style_description: "Clean Japanese B2B corporate presentation design. BACKGROUND: pure white (#FFFFFF) throughout. CORE PALETTE: white #FFFFFF, teal-green #3DBFA0, purple-blue #6B5CE7, dark navy #1A2340, light gray #F5F5F5, dark gray #333333. TYPOGRAPHY: H1 large bold dark navy; accent/highlight words in teal #3DBFA0; body dark gray #333333; small labels medium gray. LAYOUT: clean structured grid, generous whitespace, left-aligned or center-aligned headlines. CARDS: white cards with light gray border or 2px drop shadow; teal top-accent bar (4px) on feature cards; rounded corners 4-8px. ICONS: flat colored icons in teal or purple, placed above card text. CHARTS: bar charts in teal-to-purple gradient. TABLES: white rows with teal header background (#3DBFA0 text white), alternating very light gray rows; purple accent for secondary columns. ACCENT LINES: thin orange (#FF8C42) or teal horizontal rule below main title. DECORATIVE NUMBERS: large semi-transparent teal numeral as background element behind section headers. LOGO PLACEMENT: company logo small in bottom-left corner. PROCESS ARROWS: teal chevron arrows between process steps. OVERALL: professional, readable, structured — Japanese enterprise business document style. NEVER use emoji.",
+  },
 };
 
 // ─── システムプロンプト ───────────────────────────────────────
