@@ -331,7 +331,7 @@ async function main() {
         try {
           const TIMEOUT_MS = 180000; // 180秒でタイムアウト（高品質モデルは生成に時間がかかる）
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Request timeout (60s)")), TIMEOUT_MS)
+            setTimeout(() => reject(new Error("Request timeout (180s)")), TIMEOUT_MS)
           );
           const result = await Promise.race([model.generateContent(prompt), timeoutPromise]);
           const response = await result.response;
