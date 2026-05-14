@@ -167,7 +167,7 @@ Claude Code 7dayブートキャンプ
 26
 
 ### スタイル
-# 選択肢: manus / teal / premium / corporate
+# 選択肢: manus / yellow / teal / premium / corporate
 manus
 
 ## スライドの受け取り先（省略可・デフォルト: slides/output）
