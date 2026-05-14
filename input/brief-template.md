@@ -167,7 +167,7 @@ Claude Code 7dayブートキャンプ
 26
 
 ### スタイル
-# 選択肢: manus / stripe / apple / google / mckinsey / notion / figma / canva / netflix / nike / muji / premium / corporate
+# 選択肢: manus / teal / premium / corporate
 manus
 
 ## スライドの受け取り先（省略可・デフォルト: slides/output）
