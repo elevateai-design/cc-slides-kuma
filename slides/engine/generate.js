@@ -252,6 +252,7 @@ async function main() {
   let jobs = design.images.map((spec, i) => ({
     prompt: buildPrompt(spec, style, preset, design.style_description),
     outputPath: path.join(slidesDir, `slide-${i + 1}.png`),
+    slideIndex: i,
   }));
 
   if (onlyIndexes !== null && onlyIndexes.length > 0) {
@@ -312,8 +313,8 @@ async function main() {
   let usingFallback = false; // 一度フォールバックに切り替えたら以降もフォールバック
 
   for (let i = 0; i < jobs.length; i++) {
-    const { prompt, outputPath } = jobs[i];
-    const label = design.images[i]?.text?.main || `Slide ${i + 1}`;
+    const { prompt, outputPath, slideIndex } = jobs[i];
+    const label = design.images[slideIndex]?.text?.main || `Slide ${slideIndex + 1}`;
 
     // 503リトライ → それでも駄目ならフォールバックモデルで1回試みる
     const MAX_RETRY = 3;
