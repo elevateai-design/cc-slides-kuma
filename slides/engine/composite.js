@@ -164,8 +164,8 @@ async function main() {
     if (detected) {
       cx = detected.cx;
       cy = detected.cy;
-      diameter = detected.diameter;
-      console.log(`自動検出成功: 中心(${cx}, ${cy}) 直径${diameter}px`);
+      diameter = Math.round(detected.diameter * 0.85); // 名前テキストへの被りを防ぐため85%に縮小
+      console.log(`自動検出成功: 中心(${cx}, ${cy}) 直径${diameter}px（85%縮小済み）`);
     } else {
       // 自動検出失敗時のフォールバック（1920x1080想定の概算座標）
       cx = Math.round(width * 0.125);
