@@ -163,8 +163,8 @@ Claude Code 7dayブートキャンプ
 副業未経験の会社員
 
 ### 画像枚数
-# デフォルト27枚。構成合意後に確定枚数を反映する
-27
+# デフォルト26枚。構成合意後に確定枚数を反映する
+26
 
 ### スタイル
 # 選択肢: manus / stripe / apple / google / mckinsey / notion / figma / canva / netflix / nike / muji / premium / corporate
