@@ -101,7 +101,7 @@ const BLOCKS = [
 
   { type: 'h2',    text: '2. スライドの構成・流れの設計意図' },
   { type: 'bold',   text: '全26枚の構成ロジック：問題提起 → 共感 → 解決策 → 証拠 → 価格 → CTA' },
-  { type: 'normal', text: 'セールスプレゼンの王道フレームワーク（PASONA等）を参考に、26枚を8つのフェーズに整理した。' },
+  { type: 'normal', text: 'セールスプレゼンの王道フレームワーク（PASONA等）を参考に、デフォルト26枚（briefの設定で調整可能）を8つのフェーズに整理した。' },
   { type: 'empty' },
   { type: 'table_ref', id: 'TABLE_SLIDES' },
   { type: 'empty' },
