@@ -142,7 +142,68 @@ const BLOCKS = [
   { type: 'normal', text: 'Gemini API 503エラー（モデル高需要時）に対し、30秒待機×最大3回のリトライ機構と、失敗時のフォールバックモデル切替を実装した。' },
   { type: 'empty' },
 
-  { type: 'h2',    text: '5. こだわったポイント・難しかった部分' },
+  // ───── 5. ワークフロー ─────
+  { type: 'h2',     text: '5. ワークフロー（佐藤将司氏が実際に使う際の操作手順）' },
+  { type: 'normal', text: '本システムはCLAUDE.mdに記述されたガイドラインに従い、Claude Codeが対話的に各ステップを案内する設計になっている。ユーザー（受講生）は対話に答えるだけで、コマンド入力やファイル編集はClaudeが代行する。以下、初回セットアップから提出までの流れを示す。【自動】はClaudeが実行し、【手動】はユーザーが実行する作業を表す。' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'Step 0：初回セットアップ（最初の1回のみ）' },
+  { type: 'bullet', text: '【手動】GitHubからリポジトリを git clone し、当該ディレクトリでClaude Codeを起動' },
+  { type: 'bullet', text: '【自動】Claudeが CLAUDE.md を読み込み、対話ガイドを開始' },
+  { type: 'bullet', text: '【自動】Claudeが .env / node_modules の有無をチェック' },
+  { type: 'bullet', text: '【手動】ユーザーは .env に2つのAPIキー（ANTHROPIC_API_KEY / GOOGLE_AI_API_KEY）を貼り付け' },
+  { type: 'bullet', text: '【自動】不足があればClaudeが `npm install` を実行' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'Step 1：4変数のヒアリング' },
+  { type: 'bullet', text: '【自動】Claudeが「①訴求軸 → ②ターゲット → ③スタイル → ④デモコンテンツ」を1つずつ順番に質問' },
+  { type: 'bullet', text: '【手動】ユーザーは番号または自由入力で回答（例：①「4」②「1」③「premium」④「LP自動制作」「LINEボット構築」）' },
+  { type: 'bullet', text: '【自動】Claudeが回答をラベル名（文字列）に変換して brief-template.md の該当箇所を書き換え' },
+  { type: 'bullet', text: '【自動】Claudeが grep でプレースホルダー残存をチェックし、5項目の更新内容をまとめて表示' },
+  { type: 'bullet', text: '【手動】ユーザーが「はい」で承認' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'Step 2：26枚のスライド構成を合意' },
+  { type: 'bullet', text: '【自動】Claudeが構成案（01.表紙 〜 26.ROI+CTA、デモ8・9はユーザー入力で動的に表示）を提示' },
+  { type: 'bullet', text: '【手動】ユーザーが「はい」で承認、または修正点を指示' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'Step 3：テキスト設計案の生成と確認' },
+  { type: 'bullet', text: '【自動】Claudeが `node slides/engine/plan.js --brief input/brief-template.md` を実行（Claude API・1〜2分）' },
+  { type: 'bullet', text: '【自動】Claudeが生成された image-design.json を読み込み、全26枚分の main / sub / other を整形して表示' },
+  { type: 'bullet', text: '【手動】ユーザーが内容を確認し、修正したいスライド番号と内容を指示（不要なら「はい」）' },
+  { type: 'bullet', text: '【自動】修正があれば Claudeが image-design.json の該当スライドを直接編集' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'Step 4：スライド画像の生成' },
+  { type: 'bullet', text: '【自動】Claudeが `node slides/engine/generate.js --design slides/image-design.json --out slides/output` を実行（Gemini API・5〜10分）' },
+  { type: 'bullet', text: '【自動】slides/output/slides/ に slide-1.png 〜 slide-26.png が出力される' },
+  { type: 'bullet', text: '【手動】ユーザーが出力フォルダを開いて全枚を目視チェック' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'Step 5：必要に応じて部分再生成' },
+  { type: 'bullet', text: '【手動】ユーザーが文字化け・崩れ等の問題スライド番号を伝える' },
+  { type: 'bullet', text: '【自動】Claudeが `--index 5,8,10-12` のように範囲指定して再生成（該当スライドのみ。全枚を待たない）' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'Step 6：仕上げ（オプション）' },
+  { type: 'bullet', text: '【手動】顔写真合成が必要な場合、ユーザーが input/photos/ に講師写真を配置' },
+  { type: 'bullet', text: '【自動】Claudeが composite.js を実行し、講師スライド（10・11番）に顔写真を円形合成（自動検出した位置に85%サイズで貼付）' },
+  { type: 'bullet', text: '【手動】デモスライド（8・9番）は動画コンテンツ用途では「ライブデモへの橋渡し用静止画」として使い、ここで画面を切り替えてツールを動かす演出を行う' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: '自動化と手動の境界（設計判断）' },
+  { type: 'normal', text: '判断・承認・素材投入は人間に残し、定型作業はすべてClaudeに任せる方針で線引きした。具体的には以下の通り。' },
+  { type: 'bullet', text: '【手動に残した作業】 4変数の選択、構成案の承認、テキスト設計の承認、画像の良し悪し判定、顔写真の配置、Google Driveへのアップロード' },
+  { type: 'bullet', text: '【自動化した作業】 セットアップ確認、briefファイル編集、API呼び出し、JSON読み込みと整形表示、JSON部分編集、画像生成、部分再生成のコマンド組み立て、顔写真の円形マスク処理と座標検出' },
+  { type: 'empty' },
+
+  { type: 'bold',   text: 'システム外の作業（人手）' },
+  { type: 'bullet', text: '生成されたスライドのGoogle Driveアップロード・共有設定（リンクを知っている全員が閲覧可）' },
+  { type: 'bullet', text: '提出フォームへのURL貼付' },
+  { type: 'empty' },
+
+  { type: 'h2',    text: '6. こだわったポイント・難しかった部分' },
   { type: 'bold',   text: 'こだわった点' },
   { type: 'bullet', text: '再現性 ── 同じbriefから同じ構成のスライドが何度でも生成される。手作業の固定パーツをゼロにした。' },
   { type: 'bullet', text: '部分再生成 ── --indexオプションで「3枚目だけ」「5,8,10-12枚目」など柔軟な範囲指定が可能。全枚数の再生成（5〜10分）を待たずに1枚単位で調整できる。' },
@@ -168,7 +229,7 @@ const BLOCKS = [
   { type: 'bullet', text: '記号の色コード誤認識 ── 「▲50,000円オフ」の▲がGeminiに「#374151」のような色コードとして誤認識され、「#374151オフ」と崩れた文字列が出力された。→ 「50,000円割引」と平文で書くルールに統一して解消。' },
   { type: 'empty' },
 
-  { type: 'h2',     text: '6. 自己評価' },
+  { type: 'h2',     text: '7. 自己評価' },
 
   { type: 'bold',   text: '良い点（事実ベース）' },
   { type: 'bullet', text: 'brief 1ファイルの書き換えだけで4変数の異なる複数バリエーションが生成可能。評価タスクの「再現性」要件を満たしている。' },
