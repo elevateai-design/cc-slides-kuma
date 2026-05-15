@@ -68,7 +68,7 @@ async function getNewToken(oAuth2Client) {
 // type: h1 | h2 | normal | bold | bullet | empty | table_ref
 // ============================================================
 const BLOCKS = [
-  { type: 'h1',     text: 'cc-slides-kuma デザインシステム＆ワークフロー言語化ドキュメント' },
+  { type: 'h1',     text: '熊澤 佑太（cc-slides-kuma）デザインシステム＆ワークフロー言語化ドキュメント' },
   { type: 'empty' },
 
   // ───── 概要 ─────
